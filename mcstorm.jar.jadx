@@ -1,0 +1,52 @@
+{
+  "projectVersion": 1,
+  "files": [
+    "mcstorm.jar"
+  ],
+  "treeExpansions": [
+    [
+      "p000IO.MCSTORM",
+      "Source code",
+      "mcstorm.jar"
+    ],
+    [
+      "IO.MCSTORM.Main",
+      "p000IO.MCSTORM",
+      "Source code",
+      "mcstorm.jar"
+    ],
+    [
+      "Source code",
+      "mcstorm.jar"
+    ],
+    [
+      "IO.MCSTORM",
+      "Source code",
+      "mcstorm.jar"
+    ],
+    [
+      "IO.MCSTORM.Main",
+      "IO.MCSTORM",
+      "Source code",
+      "mcstorm.jar"
+    ]
+  ],
+  "codeData": {
+    "comments": [],
+    "renames": []
+  },
+  "openTabs": [
+    {
+      "type": "class",
+      "tabPath": "IO.MCSTORM.Main",
+      "subPath": "java",
+      "caret": 893,
+      "view": {
+        "x": 0,
+        "y": 131
+      }
+    }
+  ],
+  "activeTab": 0,
+  "cacheDir": "mcstorm.jar.cache"
+}

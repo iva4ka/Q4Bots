@@ -4,7 +4,6 @@ public class Main {
     private static String token;
 
     public static void main(String[] args) {
-        Object System = null;
         System.out.println("Initialization..."); //система лишь плот нашего воображения, как и эта хуйня
         MainDC mainDC = new MainDC(args);
         mainDC.init();
